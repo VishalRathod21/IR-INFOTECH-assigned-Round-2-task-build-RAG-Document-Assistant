@@ -15,8 +15,7 @@ An AI-powered Document Assistant that lets you upload PDF documents and ask ques
 - [Getting Started](#getting-started)
 - [Environment Variables](#environment-variables)
 - [API Reference](#api-reference)
-- [Bonus Features](#bonus-features)
-- [Design Decisions](#design-decisions)
+
 
 ---
 
