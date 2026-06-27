@@ -399,34 +399,5 @@ curl http://localhost:8004/health
 # {"status": "ok", "service": "RAG Document Assistant", "version": "1.0.0"}
 ```
 
----
 
-## 🌟 Bonus Features
 
-### 1. Multi-Document Upload
-`POST /documents/upload` accepts a `files` field with multiple PDFs. Each is processed independently. If one fails (e.g. scanned/image-only PDF), it is marked `"status": "failed"` in the response without blocking the others.
-
-### 2. Dockerization
-- **`Dockerfile`** — `python:3.11-slim` base, layer-cached pip install, non-root friendly.
-- **`docker-compose.yml`** — single command `docker compose up --build`.
-- Volumes `./uploads` and `./data` are mounted so uploaded PDFs and the FAISS index survive container restarts.
-
-### 3. API Key Authentication
-Every protected endpoint requires `X-API-Key` in the request header. Implemented using FastAPI's `APIKeyHeader` security scheme — the key appears as a proper **🔒 Authorize** button in the Swagger UI. Missing or wrong keys return `HTTP 401`.
-
-### 4. Streaming Responses
-`POST /chat/ask/stream` uses Groq's streaming API (`stream=True`) and wraps the output in a `StreamingResponse` (SSE format). Tokens are word-buffered — yielded only at space/newline boundaries — so the browser receives complete words, not subword fragments.
-
----
-
-## 💡 Design Decisions
-
-| Decision | Rationale |
-|---|---|
-| **FAISS over ChromaDB** | No external server needed; `IndexFlatIP` with L2-normalised vectors gives exact cosine similarity; index persisted as flat files |
-| **`all-MiniLM-L6-v2`** | 384-dim, fast to embed, strong semantic quality for a 80MB model |
-| **`llama-3.3-70b-versatile` on Groq** | Free tier, sub-2s latency, strong instruction following |
-| **LangChain `RecursiveCharacterTextSplitter`** | Respects paragraph → sentence → word hierarchy; better context preservation than fixed-size splits |
-| **Router-level auth** | `dependencies=[Depends(verify_api_key)]` on `APIRouter` protects all child routes automatically without touching each endpoint |
-| **Word-buffered SSE** | Raw Groq tokens are sub-word pieces; buffering to word boundaries makes streaming readable in the browser |
-| **`lru_cache` on heavy objects** | Embedding model and Groq client are expensive to init — cached across requests, loaded once per process |
